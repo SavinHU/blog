@@ -1,0 +1,103 @@
+---
+import { getCollection } from 'astro:content';
+import BaseHead from '../../components/BaseHead.astro';
+import Footer from '../../components/Footer.astro';
+import Header from '../../components/Header.astro';
+import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
+
+const checkins = (await getCollection('checkins')).sort(
+	(a, b) => b.data.startDate.valueOf() - a.data.startDate.valueOf(),
+);
+
+function progressBar(current: number, target: number): number {
+	return Math.min(100, Math.round((current / target) * 100));
+}
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={`打卡 · ${SITE_TITLE}`} description={SITE_DESCRIPTION} />
+		<style>
+			main {
+				width: 800px;
+				margin: auto;
+				padding: 1em;
+			}
+			h1 {
+				margin-bottom: 1.5em;
+			}
+			.checkin-card {
+				border: 1px solid rgb(var(--gray-light));
+				border-radius: 12px;
+				padding: 1.5em;
+				margin-bottom: 1.5em;
+				background: white;
+				box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+			}
+			.checkin-card h2 {
+				margin: 0 0 0.5em;
+				font-size: 1.3em;
+			}
+			.checkin-stats {
+				display: flex;
+				gap: 1.5em;
+				margin: 0.5em 0;
+				color: rgb(var(--gray));
+			}
+			.checkin-stats strong {
+				color: rgb(var(--accent));
+				font-size: 1.3em;
+			}
+			.progress-bar {
+				width: 100%;
+				height: 12px;
+				background: rgb(var(--gray-light));
+				border-radius: 999px;
+				overflow: hidden;
+				margin-top: 0.8em;
+			}
+			.progress-fill {
+				height: 100%;
+				background: linear-gradient(90deg, rgb(var(--accent)), rgb(var(--accent-light)));
+				transition: width 0.3s ease;
+			}
+			.start-date {
+				color: rgb(var(--gray));
+				font-size: 0.9em;
+				margin-top: 0.5em;
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<h1>📊 打卡</h1>
+			{
+				checkins.map((checkin) => (
+					<div class="checkin-card">
+						<h2>{checkin.data.title}</h2>
+						<div class="checkin-stats">
+							<span>
+								已坚持 <strong>{checkin.data.current}</strong> {checkin.data.unit}
+							</span>
+							<span>
+								目标 <strong>{checkin.data.target}</strong> {checkin.data.unit}
+							</span>
+						</div>
+						<div class="progress-bar">
+							<div
+								class="progress-fill"
+								style={`width: ${progressBar(checkin.data.current, checkin.data.target)}%`}
+							/>
+						</div>
+						<p class="start-date">
+							开始于 {checkin.data.startDate.toLocaleDateString('zh-CN')}
+						</p>
+					</div>
+				))
+			}
+		</main>
+		<Footer />
+	</body>
+</html>

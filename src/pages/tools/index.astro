@@ -1,0 +1,131 @@
+---
+import { getCollection } from 'astro:content';
+import BaseHead from '../../components/BaseHead.astro';
+import Footer from '../../components/Footer.astro';
+import Header from '../../components/Header.astro';
+import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
+
+const tools = (await getCollection('tools')).sort((a, b) =>
+	a.data.name.localeCompare(b.data.name, 'zh-CN'),
+);
+
+// 按 category 分组
+const byCategory = tools.reduce(
+	(acc, tool) => {
+		const cat = tool.data.category;
+		if (!acc[cat]) acc[cat] = [];
+		acc[cat].push(tool);
+		return acc;
+	},
+	{} as Record<string, typeof tools>,
+);
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={`工具库 · ${SITE_TITLE}`} description={SITE_DESCRIPTION} />
+		<style>
+			main {
+				width: 960px;
+				margin: auto;
+				padding: 1em;
+			}
+			h1 {
+				margin-bottom: 0.5em;
+			}
+			.intro {
+				color: rgb(var(--gray));
+				margin-bottom: 2em;
+			}
+			.category {
+				margin-bottom: 2.5em;
+			}
+			.category h2 {
+				font-size: 1.3em;
+				border-bottom: 2px solid rgb(var(--accent));
+				padding-bottom: 0.3em;
+				margin-bottom: 1em;
+			}
+			.tool-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+				gap: 1em;
+			}
+			.tool-card {
+				border: 1px solid rgb(var(--gray-light));
+				border-radius: 12px;
+				padding: 1.2em;
+				background: white;
+				transition: all 0.2s ease;
+			}
+			.tool-card:hover {
+				border-color: rgb(var(--accent));
+				box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+			}
+			.tool-card h3 {
+				margin: 0 0 0.3em;
+				font-size: 1.1em;
+			}
+			.tool-card h3 a {
+				color: rgb(var(--black));
+				text-decoration: none;
+			}
+			.tool-card h3 a:hover {
+				color: rgb(var(--accent));
+			}
+			.tool-card p {
+				color: rgb(var(--gray));
+				margin: 0.5em 0;
+				font-size: 0.9em;
+				line-height: 1.5;
+			}
+			.tool-card .tags {
+				margin-top: 0.8em;
+			}
+			.tool-card .tag {
+				display: inline-block;
+				background: rgb(var(--accent-light));
+				color: rgb(var(--accent));
+				padding: 0.1rem 0.5rem;
+				border-radius: 999px;
+				font-size: 0.75rem;
+				margin-right: 0.3rem;
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<h1>🛠 工具库</h1>
+			<p class="intro">老胡在用的工具 · 后续会演变成"AI 工具导航站"</p>
+			{
+				Object.entries(byCategory).map(([category, items]) => (
+					<div class="category">
+						<h2>{category}</h2>
+						<div class="tool-grid">
+							{items.map((tool) => (
+								<div class="tool-card">
+									<h3>
+										<a href={tool.data.url} target="_blank" rel="noopener">
+											{tool.data.name}
+										</a>
+									</h3>
+									<p>{tool.data.description}</p>
+									{tool.data.tags.length > 0 && (
+										<div class="tags">
+											{tool.data.tags.map((tag: string) => (
+												<span class="tag">#{tag}</span>
+											))}
+										</div>
+									)}
+								</div>
+							))}
+						</div>
+					</div>
+				))
+			}
+		</main>
+		<Footer />
+	</body>
+</html>
